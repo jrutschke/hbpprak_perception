@@ -1,10 +1,17 @@
+import os, sys
 import hbp_nrp_excontrol.nrp_states as states
+from hbp_nrp_excontrol.logs import clientLogger
 from gazebo_msgs.srv import ApplyBodyWrench, GetModelState, SetModelState, SetModelStateRequest, DeleteModel, SpawnEntity, SpawnEntityRequest
 from smach import StateMachine
 from smach.state import State
 from geometry_msgs.msg import Wrench, Vector3, Point
 import rospy
 from rospy import ServiceProxy, wait_for_service
+from std_srvs.srv import *
+
+sys.path.append(os.path.join(os.path.dirname(__file__)))
+
+from thimblerigger_server import ThimbleriggerChallengeServer
 
 FINISHED = 'FINISHED'
 ERROR = 'ERROR'
@@ -58,7 +65,7 @@ mug_sdf_xml = """
         <pose>0 0 0 0 0 0</pose>
         <static>true</static>
         <link name='{mug_name}'>
-        
+
           <gravity>0</gravity>
           <inertial>
             <mass>0.8</mass>
@@ -110,9 +117,9 @@ class SpawnMugsState(State):
         for _mug_msg in self._spawn_msgs:
         	self._spawn_proxy(_mug_msg)
         return 'success'
-    
+
 class LiftMugState(State):
-    
+
     def __init__(self, mug_name, height, outcomes=['success', 'aborted']):
         super(LiftMugState, self).__init__(outcomes=outcomes)
         self._mug_name = mug_name
@@ -120,8 +127,8 @@ class LiftMugState(State):
         self._move_proxy = rospy.ServiceProxy('/gazebo/set_model_state',
                                               SetModelState, persistent=True)
         self._model_state_proxy =  rospy.ServiceProxy('gazebo/get_model_state',GetModelState)
-			
-        
+
+
     def execute(self, userdata):
         model_state = self._model_state_proxy(self._mug_name, 'world')
         _req = SetModelStateRequest()
@@ -132,9 +139,29 @@ class LiftMugState(State):
         _req.model_state.reference_frame = 'world'
         self._move_proxy(_req)
         return "success"
-    
+
 
 with sm:
+    clientLogger.info("Starting Thimblerigger challenge server...")
+    challenge_server = ThimbleriggerChallengeServer()
+    challenge_server.serve()
+    clientLogger.info("Thimblerigger challenge server started.")
+
+    start_service = "start_thimblerigger_challenge"
+    stop_service = "stop_thimblerigger_challenge"
+
+    rospy.wait_for_service(start_service)
+    rospy.wait_for_service(stop_service)
+
+    # Start the challenge (development only... the group solving the challenge
+    # will make this call from elsewhere)
+    clientLogger.info("Making start challenge service call...")
+    client = rospy.ServiceProxy(start_service, Trigger)
+    try:
+        res = client()
+    except rospy.ServiceException as exc:
+        print("Service did not process request: " + str(exc))
+
     StateMachine.add(
       "spawn_mugs",
       SpawnMugsState("mug", 3, mug_sdf_xml),

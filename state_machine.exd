@@ -1,0 +1,149 @@
+import hbp_nrp_excontrol.nrp_states as states
+from gazebo_msgs.srv import ApplyBodyWrench, GetModelState, SetModelState, SetModelStateRequest, DeleteModel, SpawnEntity, SpawnEntityRequest
+from smach import StateMachine
+from smach.state import State
+from geometry_msgs.msg import Wrench, Vector3, Point
+import rospy
+from rospy import ServiceProxy, wait_for_service
+
+FINISHED = 'FINISHED'
+ERROR = 'ERROR'
+PREEMPTED = 'PREEMPTED'
+
+sm = StateMachine(outcomes=[FINISHED, ERROR, PREEMPTED])
+
+import hbp_nrp_excontrol.nrp_states as states
+
+
+ball_name = "ball"
+ball_sdf_xml = """
+    <?xml version='1.0'?>
+    <sdf version='1.5'>
+      <model name='{ball_name}'>
+        <pose>0 0 0 0 0 0</pose>
+        <link name='{ball_name}'>
+          <inertial>
+            <mass>0.057</mass>
+          </inertial>
+          <collision name='collision'>
+            <geometry>
+              <sphere>
+                <radius>.034</radius>
+              </sphere>
+            </geometry>
+          </collision>
+          <visual name='visual'>
+            <geometry>
+              <sphere>
+                <radius>.034</radius>
+              </sphere>
+            </geometry>
+            <material>
+              <script>
+                <uri>file://media/materials/scripts/gazebo.material</uri>
+                <name>Gazebo/Green</name>
+              </script>
+            </material>
+          </visual>
+        </link>
+      </model>
+    </sdf>
+    """
+
+
+mug_sdf_xml = """
+    <?xml version='1.0'?>
+    <sdf version='1.5'>
+      <model name='{mug_name}'>
+        <pose>0 0 0 0 0 0</pose>
+        <static>true</static>
+        <link name='{mug_name}'>
+        
+          <gravity>0</gravity>
+          <inertial>
+            <mass>0.8</mass>
+          </inertial>
+          <collision name='collision'>
+            <geometry>
+              <sphere>
+                <radius>.3</radius>
+              </sphere>
+            </geometry>
+          </collision>
+          <visual name='visual'>
+            <geometry>
+              <sphere>
+                <radius>.3</radius>
+              </sphere>
+            </geometry>
+            <material>
+              <script>
+                <uri>file://media/materials/scripts/gazebo.material</uri>
+                <name>Gazebo/Red</name>
+              </script>
+            </material>
+          </visual>
+        </link>
+      </model>
+    </sdf>
+    """
+
+class SpawnMugsState(State):
+    def __init__(self, mug_prefix, num_mugs, sdf_xml, outcomes=['success', 'aborted']):
+        super(SpawnMugsState, self).__init__(outcomes=outcomes)
+        self._mug_names = ["{}{}".format(mug_prefix, i) for i in range(num_mugs)]
+        self._spawn_proxy = rospy.ServiceProxy('/gazebo/spawn_sdf_entity',
+                                               SpawnEntity, persistent=True)
+        self._spawn_msgs = list()
+        for i, mug_name in enumerate(self._mug_names):
+            _msg = SpawnEntityRequest()
+            _msg.entity_name = mug_name
+            _msg.entity_xml = sdf_xml.format(mug_name=mug_name)
+            _msg.initial_pose.position.x = (i + 1) / 2.
+            _msg.initial_pose.position.y = 0.5
+            _msg.initial_pose.position.z = 0.5
+            _msg.reference_frame = "world"
+            self._spawn_msgs.append(_msg)
+
+
+    def execute(self, userdata):
+        for _mug_msg in self._spawn_msgs:
+        	self._spawn_proxy(_mug_msg)
+        return 'success'
+    
+class LiftMugState(State):
+    
+    def __init__(self, mug_name, height, outcomes=['success', 'aborted']):
+        super(LiftMugState, self).__init__(outcomes=outcomes)
+        self._mug_name = mug_name
+        self._height = height
+        self._move_proxy = rospy.ServiceProxy('/gazebo/set_model_state',
+                                              SetModelState, persistent=True)
+        self._model_state_proxy =  rospy.ServiceProxy('gazebo/get_model_state',GetModelState)
+			
+        
+    def execute(self, userdata):
+        model_state = self._model_state_proxy(self._mug_name, 'world')
+        _req = SetModelStateRequest()
+        _req.model_state.model_name = self._mug_name
+        _req.model_state.pose = model_state.pose
+        _req.model_state.pose.position.z += self._height
+        _req.model_state.twist = model_state.twist
+        _req.model_state.reference_frame = 'world'
+        self._move_proxy(_req)
+        return "success"
+    
+
+with sm:
+    StateMachine.add(
+      "spawn_mugs",
+      SpawnMugsState("mug", 3, mug_sdf_xml),
+      transitions = {"success": "lift_mug",
+                     "aborted": ERROR}
+    )
+    StateMachine.add(
+        "lift_mug",
+        LiftMugState("mug1", 3),
+        transitions = {"success": FINISHED,
+                       "aborted": ERROR}
+   )

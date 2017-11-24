@@ -6,6 +6,8 @@ from geometry_msgs.msg import Wrench, Vector3, Point
 import rospy
 from rospy import ServiceProxy, wait_for_service
 
+import random
+
 FINISHED = 'FINISHED'
 ERROR = 'ERROR'
 PREEMPTED = 'PREEMPTED'
@@ -22,16 +24,10 @@ ball_sdf_xml = """
       <model name='{ball_name}'>
         <pose>0 0 0 0 0 0</pose>
         <link name='{ball_name}'>
+          <gravity>0</gravity>
           <inertial>
             <mass>0.057</mass>
           </inertial>
-          <collision name='collision'>
-            <geometry>
-              <sphere>
-                <radius>.034</radius>
-              </sphere>
-            </geometry>
-          </collision>
           <visual name='visual'>
             <geometry>
               <sphere>
@@ -56,25 +52,18 @@ mug_sdf_xml = """
     <sdf version='1.5'>
       <model name='{mug_name}'>
         <pose>0 0 0 0 0 0</pose>
-        <static>true</static>
         <link name='{mug_name}'>
-        
+
           <gravity>0</gravity>
           <inertial>
             <mass>0.8</mass>
           </inertial>
-          <collision name='collision'>
-            <geometry>
-              <sphere>
-                <radius>.3</radius>
-              </sphere>
-            </geometry>
-          </collision>
           <visual name='visual'>
             <geometry>
-              <sphere>
-                <radius>.3</radius>
-              </sphere>
+              <cylinder>
+                <radius>.2</radius>
+                <length>1.</length>
+              </cylinder>
             </geometry>
             <material>
               <script>
@@ -99,7 +88,7 @@ class SpawnMugsState(State):
             _msg = SpawnEntityRequest()
             _msg.entity_name = mug_name
             _msg.entity_xml = sdf_xml.format(mug_name=mug_name)
-            _msg.initial_pose.position.x = (i + 1) / 2.
+            _msg.initial_pose.position.x = (i + 0.6)
             _msg.initial_pose.position.y = 0.5
             _msg.initial_pose.position.z = 0.5
             _msg.reference_frame = "world"
@@ -110,29 +99,43 @@ class SpawnMugsState(State):
         for _mug_msg in self._spawn_msgs:
         	self._spawn_proxy(_mug_msg)
         return 'success'
-    
+
 class LiftMugState(State):
-    
+
     def __init__(self, mug_name, height, outcomes=['success', 'aborted']):
         super(LiftMugState, self).__init__(outcomes=outcomes)
         self._mug_name = mug_name
         self._height = height
         self._move_proxy = rospy.ServiceProxy('/gazebo/set_model_state',
                                               SetModelState, persistent=True)
-        self._model_state_proxy =  rospy.ServiceProxy('gazebo/get_model_state',GetModelState)
-			
-        
+        self._model_state_proxy =  rospy.ServiceProxy('gazebo/get_model_state',
+                                                      GetModelState,
+                                                      persistent=True)
+
+
     def execute(self, userdata):
-        model_state = self._model_state_proxy(self._mug_name, 'world')
-        _req = SetModelStateRequest()
-        _req.model_state.model_name = self._mug_name
-        _req.model_state.pose = model_state.pose
-        _req.model_state.pose.position.z += self._height
-        _req.model_state.twist = model_state.twist
-        _req.model_state.reference_frame = 'world'
-        self._move_proxy(_req)
+        self.move_continuosly(dz=self._height, continuity=100)
         return "success"
-    
+
+
+    def move_continuosly(self, dx=0., dy=0., dz=0., continuity=100):
+        # Lower speed constant means bigger jumps
+        for i in range(continuity):
+            model_state = self._model_state_proxy(self._mug_name, 'world')
+            _req = SetModelStateRequest()
+            _req.model_state.model_name = self._mug_name
+            _req.model_state.pose = model_state.pose
+            _req.model_state.pose.position.x += float(dx) / continuity
+            _req.model_state.pose.position.y += float(dy) / continuity
+            _req.model_state.pose.position.z += float(dz) / continuity
+            _req.model_state.twist = model_state.twist
+            _req.model_state.scale = model_state.scale
+            _req.model_state.reference_frame = 'world'
+            self._move_proxy(_req)
+
+
+
+
 
 with sm:
     StateMachine.add(
@@ -143,7 +146,7 @@ with sm:
     )
     StateMachine.add(
         "lift_mug",
-        LiftMugState("mug1", 3),
+        LiftMugState("mug1", 1),
         transitions = {"success": FINISHED,
                        "aborted": ERROR}
    )

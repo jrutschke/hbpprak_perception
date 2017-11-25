@@ -1,10 +1,18 @@
-thimblerigger_started_topic = "start_thimblerigger_challenge_signal"
-thimblerigger_step_topic = "step_thimblerigger_challenge_signal"
-thimblerigger_stopped_topic = "stop_thimblerigger_challenge"
+namespace = "thimblerigger"
 
-thimblerigger_start_service = "start_thimblerigger_challenge"
-thimblerigger_step_service = "step_thimblerigger_challenge"
-thimblerigger_stop_service = "stop_thimblerigger_challenge"
+thimblerigger_started_topic = namespace + "/start_challenge_signal"
+thimblerigger_step_topic = namespace + "/step_challenge_signal"
+thimblerigger_stopped_topic = namespace + "/stop_challenge_signal"
+
+thimblerigger_start_service = namespace + "/start_challenge"
+thimblerigger_step_service = namespace + "/step_challenge"
+thimblerigger_stop_service = namespace + "/stop_challenge"
+
+thimblerigger_reset_service = namespace + "/reset"
+thimblerigger_show_correct_service = namespace + "/show_correct_mug"
+thimblerigger_hide_correct_service = namespace + "/hide_correct_mug"
+thimblerigger_shuffle_service = namespace + "/shuffle"
+
 
 ball_sdf_xml = """
     <?xml version='1.0'?>

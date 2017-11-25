@@ -1,30 +1,22 @@
 import os, sys
-import hbp_nrp_excontrol.nrp_states as states
-from hbp_nrp_excontrol.logs import clientLogger
-from gazebo_msgs.srv import ApplyBodyWrench, GetModelState, SetModelState, SetModelStateRequest, DeleteModel, SpawnEntity, SpawnEntityRequest
+
 from std_msgs.msg import Empty
+from std_srvs.srv import Trigger
+
 from smach import StateMachine
 from smach.state import State
 import smach_ros
-from geometry_msgs.msg import Wrench, Vector3, Point
-from std_msgs.msg import Empty
 import rospy
-from rospy import ServiceProxy, wait_for_service
-from std_srvs.srv import Trigger
-import time
+
+import hbp_nrp_excontrol.nrp_states as states
+from hbp_nrp_excontrol.logs import clientLogger
 
 sys.path.append(os.path.join(os.path.dirname(__file__)))
 
-from thimblerigger_server import ThimbleriggerChallengeServer
-from stepper import Stepper
-
-
-import random
-
-import hbp_nrp_excontrol.nrp_states as states
-
 import thimblerigger_config as tc
+from thimblerigger_server import ThimbleriggerChallengeServer
 from thimblerigger import Thimblerigger
+from stepper import Stepper
 
 
 FINISHED = 'FINISHED'
@@ -49,18 +41,67 @@ with sm:
     #StateMachine.add(
         #"wait_start",
         #smach_ros.MonitorState("/start_thimblerigger_challenge_signal", Empty, start_callback),
-        #transitions={"invalid": "visual_step", "valid": "wait_start", "preempted": ERROR}
+        #transitions={"invalid": "wait_lift_mug", "valid": "wait_start", "preempted": ERROR}
     #)
 
-    StateMachine.add("visual_step",
-                     smach_ros.MonitorState(tc.thimblerigger_step_topic,
-                                            Empty,
-                                            thimblerigger.step),
-                     transitions={"valid": "visual_step",
-                                  "invalid": FINISHED,
-                                  "preempted": PREEMPTED}
-                    )
+    # Wait until the user wants to lift the correct mug to see which one she needs to track
+    StateMachine.add(
+        "wait_lift_mug",
+        smach_ros.MonitorState(tc.thimblerigger_step_topic, Empty, step_callback),
+        transitions={"valid": "wait_lift_mug",
+                     "invalid": "lift_correct_mug",
+                     "preempted": PREEMPTED}
+    )
 
+    # Lift the correct mug
+    StateMachine.add(
+        "lift_correct_mug",
+        smach_ros.ServiceState(tc.thimblerigger_show_correct_service, Trigger),
+        transitions={"succeeded": "wait_hide_mug",
+                     "aborted": ERROR,
+                     "preempted": PREEMPTED
+                    }
+    )
+
+    # Wait until the user wants to hide the correct mug again
+    StateMachine.add(
+        "wait_hide_mug",
+        smach_ros.MonitorState(tc.thimblerigger_step_topic, Empty, step_callback),
+        transitions={"valid": "wait_hide_mug",
+                     "invalid": "hide_correct_mug",
+                     "preempted": PREEMPTED}
+    )
+
+    # Hide the correct mug again
+    StateMachine.add(
+        "hide_correct_mug",
+        smach_ros.ServiceState(tc.thimblerigger_hide_correct_service, Trigger),
+        transitions={"succeeded": "wait_shuffle",
+                     "aborted": ERROR,
+                     "preempted": PREEMPTED
+                    }
+    )
+
+    # Wait until the user want to shuffle
+    StateMachine.add(
+        "wait_shuffle",
+        smach_ros.MonitorState(tc.thimblerigger_step_topic, Empty, step_callback),
+        transitions={"valid": "wait_shuffle",
+                     "invalid": "shuffle",
+                     "preempted": PREEMPTED}
+    )
+
+    # Shuffle the mugs
+    StateMachine.add(
+        "shuffle",
+        smach_ros.ServiceState(tc.thimblerigger_shuffle_service, Trigger),
+        transitions={"succeeded": FINISHED,
+                     "aborted": ERROR,
+                     "preempted": PREEMPTED
+                    }
+    )
+
+    # Now we need to wait for the choice of the user
 
 
     clientLogger.info("Starting Thimblerigger challenge server...")
@@ -68,5 +109,5 @@ with sm:
     challenge_server.serve()
     clientLogger.info("Thimblerigger challenge server started.")
 
-    #stepper = Stepper()  # Dummy for automatically stepping through the challenge
-    #stepper.run_async()
+#stepper = Stepper()  # Dummy for automatically stepping through the challenge
+#stepper.run_async()

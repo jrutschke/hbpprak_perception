@@ -22,7 +22,7 @@ class Thimblerigger(object):
         self._mug_prefix = "mug"
         self._ball_name = "ball"
         self.mug_order = ["{}{}".format(self._mug_prefix, mug)
-                          for mug in range num_mugs]
+                          for mug in range(num_mugs)]
         self.lift_height = lift_height
 
 
@@ -47,6 +47,8 @@ class Thimblerigger(object):
         self._ball_spawned = None
         self.mug_with_ball = None
 
+        self.setup()
+
 
     def setup(self):
         self.reset()
@@ -61,7 +63,7 @@ class Thimblerigger(object):
         self._ball_spawned = False
         self.choose_mug_for_ball()
 
-    def step(self):
+    def step(self, *args, **kwargs):
 
         if len(self._step_mapping) == 0:
             clientLogger.info("No more steps to execute, pick a mug now.")
@@ -74,7 +76,7 @@ class Thimblerigger(object):
 
     def choose_mug_for_ball(self):
         clientLogger.info("Choosing random mug for ball.")
-        self.mug_with_ball = random.choice(self.mug_names)
+        self.mug_with_ball = random.choice(self.mug_order)
 
     def spawn_mugs(self, dx=0.5):
         clientLogger.info("Spawning {} mugs.".format(len(self.mug_order)))
@@ -98,7 +100,7 @@ class Thimblerigger(object):
         return self._ball_spawned
 
     def show_mug_with_ball(self):
-        clientLogger.info("Showing which mug containes the ball.")
+        clientLogger.info("Showing which mug contains the ball.")
         self._spawn_ball()
         self._show_ball()
         return self._ball_spawned and self._ball_visible
@@ -114,11 +116,11 @@ class Thimblerigger(object):
             under_mug_pose = self._model_state_proxy(self.mug_with_ball, 'world')
             msg = SpawnEntityRequest()
             msg.entity_name = self._ball_name
-            msg.entity_xml = self.ball_sdf.format(ball_name=_msg.entity_name)
+            msg.entity_xml = self.ball_sdf.format(ball_name=msg.entity_name)
             msg.initial_pose.position = under_mug_pose.pose.position
             msg.initial_pose.position.z = 0
             msg.reference_frame = "world"
-            self._spawn_proxy(_msg)
+            self._spawn_proxy(msg)
             self._ball_spawned = True
 
     def _despawn_ball(self):

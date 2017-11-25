@@ -1,11 +1,11 @@
 thimblerigger_started_topic = "start_thimblerigger_challenge_signal"
-thiblerigger_step_topic = "step_thimblerigger_challenge_signal"
+thimblerigger_step_topic = "step_thimblerigger_challenge_signal"
 
 ball_sdf_xml = """
     <?xml version='1.0'?>
     <sdf version='1.5'>
       <model name='{ball_name}'>
-        <pose>0 0 0 0 0 0</pose>
+        <pose>0 0 .3 0 0 0</pose>
         <link name='{ball_name}'>
           <gravity>0</gravity>
           <inertial>
@@ -34,7 +34,7 @@ mug_sdf_xml = """
     <?xml version='1.0'?>
     <sdf version='1.5'>
       <model name='{mug_name}'>
-        <pose>0 0 0 0 0 0</pose>
+        <pose>0 0 .7 0 0 0</pose>
         <link name='{mug_name}'>
 
           <gravity>0</gravity>
@@ -45,7 +45,7 @@ mug_sdf_xml = """
             <geometry>
               <cylinder>
                 <radius>.2</radius>
-                <length>1.</length>
+                <length>.7</length>
               </cylinder>
             </geometry>
             <material>

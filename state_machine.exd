@@ -42,22 +42,23 @@ def step_callback(userdata, msg):
 
 thimblerigger = Thimblerigger(num_mugs=3,
                               mug_sdf=tc.mug_sdf_xml, ball_sdf=tc.ball_sdf_xml,
-                              light_height=1.,
+                              lift_height=1.,
                               seed=None)
 sm = StateMachine(outcomes=[FINISHED, ERROR, PREEMPTED])
 with sm:
     #StateMachine.add(
         #"wait_start",
         #smach_ros.MonitorState("/start_thimblerigger_challenge_signal", Empty, start_callback),
-        #transitions={"invalid": "spawn_mugs", "valid": "wait_start", "preempted": ERROR}
+        #transitions={"invalid": "step", "valid": "wait_start", "preempted": ERROR}
     #)
 
     StateMachine.add("step",
-                     smach_ros.MonitorState(tc.thimblerigger_step_topic
+                     smach_ros.MonitorState(tc.thimblerigger_step_topic,
                                             Empty,
                                             thimblerigger.step),
                      transitions={"valid": "step",
-                                  "invalid": FINISHED}
+                                  "invalid": FINISHED,
+                                  "preempted": PREEMPTED}
                     )
 
 

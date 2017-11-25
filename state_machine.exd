@@ -1,12 +1,23 @@
+import os, sys
 import hbp_nrp_excontrol.nrp_states as states
+from hbp_nrp_excontrol.logs import clientLogger
 from gazebo_msgs.srv import ApplyBodyWrench, GetModelState, SetModelState, SetModelStateRequest, DeleteModel, SpawnEntity, SpawnEntityRequest
 from std_msgs.msg import Empty
 from smach import StateMachine
 from smach.state import State
-from smach_ros import MonitorState
+import smach_ros
 from geometry_msgs.msg import Wrench, Vector3, Point
+from std_msgs.msg import Empty
 import rospy
 from rospy import ServiceProxy, wait_for_service
+from std_srvs.srv import Trigger
+import time
+
+sys.path.append(os.path.join(os.path.dirname(__file__)))
+
+from thimblerigger_server import ThimbleriggerChallengeServer
+from stepper import Stepper
+
 
 import random
 
@@ -20,12 +31,27 @@ FINISHED = 'FINISHED'
 ERROR = 'ERROR'
 PREEMPTED = 'PREEMPTED'
 
+
+def start_callback(userdata, msg):
+    clientLogger.info("start_callback called")
+    return False
+
+def step_callback(userdata, msg):
+    clientLogger.info("step_callback called")
+    return False
+
 thimblerigger = Thimblerigger(num_mugs=3,
                               mug_sdf=tc.mug_sdf_xml, ball_sdf=tc.ball_sdf_xml,
                               light_height=1.,
                               seed=None)
 sm = StateMachine(outcomes=[FINISHED, ERROR, PREEMPTED])
 with sm:
+    #StateMachine.add(
+        #"wait_start",
+        #smach_ros.MonitorState("/start_thimblerigger_challenge_signal", Empty, start_callback),
+        #transitions={"invalid": "spawn_mugs", "valid": "wait_start", "preempted": ERROR}
+    #)
+
     StateMachine.add("step",
                      smach_ros.MonitorState(tc.thimblerigger_step_topic
                                             Empty,
@@ -33,3 +59,12 @@ with sm:
                      transitions={"valid": "step",
                                   "invalid": FINISHED}
                     )
+
+
+    clientLogger.info("Starting Thimblerigger challenge server...")
+    challenge_server = ThimbleriggerChallengeServer()
+    challenge_server.serve()
+    clientLogger.info("Thimblerigger challenge server started.")
+
+stepper = Stepper()  # Dummy for automatically stepping through the challenge
+stepper.run_async()

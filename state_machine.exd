@@ -1,7 +1,9 @@
 import hbp_nrp_excontrol.nrp_states as states
 from gazebo_msgs.srv import ApplyBodyWrench, GetModelState, SetModelState, SetModelStateRequest, DeleteModel, SpawnEntity, SpawnEntityRequest
+from std_msgs.msg import Empty
 from smach import StateMachine
 from smach.state import State
+from smach_ros import MonitorState
 from geometry_msgs.msg import Wrench, Vector3, Point
 import rospy
 from rospy import ServiceProxy, wait_for_service
@@ -10,192 +12,24 @@ import random
 
 import hbp_nrp_excontrol.nrp_states as states
 
+import thimblerigger_config as tc
+from thimblerigger import Thimblerigger
 
-ball_name = "ball"
-ball_sdf_xml = """
-    <?xml version='1.0'?>
-    <sdf version='1.5'>
-      <model name='{ball_name}'>
-        <pose>0 0 0 0 0 0</pose>
-        <link name='{ball_name}'>
-          <gravity>0</gravity>
-          <inertial>
-            <mass>0.057</mass>
-          </inertial>
-          <visual name='visual'>
-            <geometry>
-              <sphere>
-                <radius>0.15</radius>
-              </sphere>
-            </geometry>
-            <material>
-              <script>
-                <uri>file://media/materials/scripts/gazebo.material</uri>
-                <name>Gazebo/Green</name>
-              </script>
-            </material>
-          </visual>
-        </link>
-      </model>
-    </sdf>
-    """
-
-
-mug_sdf_xml = """
-    <?xml version='1.0'?>
-    <sdf version='1.5'>
-      <model name='{mug_name}'>
-        <pose>0 0 0 0 0 0</pose>
-        <link name='{mug_name}'>
-
-          <gravity>0</gravity>
-          <inertial>
-            <mass>0.8</mass>
-          </inertial>
-          <visual name='visual'>
-            <geometry>
-              <cylinder>
-                <radius>.2</radius>
-                <length>1.</length>
-              </cylinder>
-            </geometry>
-            <material>
-              <script>
-                <uri>file://media/materials/scripts/gazebo.material</uri>
-                <name>Gazebo/Red</name>
-              </script>
-            </material>
-          </visual>
-        </link>
-      </model>
-    </sdf>
-    """
-
-class StateMachineBuilder(object):
-
-    def __init__(self, sm, mug_sdf, ball_sdf, num_mugs=3, seed=None):
-        self.mug_sdf = mug_sdf
-        self.ball_sdf = ball_sdf
-        self.num_mugs = num_mugs
-        self.rnd = random.Random()
-        self.rnd.seed(seed)
-
-
-        self._move_proxy = rospy.ServiceProxy('/gazebo/set_model_state',
-                                              SetModelState,
-                                              persistent=True)
-        self._model_state_proxy =  rospy.ServiceProxy('gazebo/get_model_state',
-                                                      GetModelState,
-                                                      persistent=True)
-        self.sm = sm
-        self.start_ball = None
-
-
-    def move_continuosly(self, model_name, dx=0., dy=0., dz=0., smoothness=100):
-        # Lower smoothness constant means bigger jumps
-        smoothness = max(1, smoothness)
-        for i in range(smoothness):
-            model_state = self._model_state_proxy(model_name, 'world')
-            _req = SetModelStateRequest()
-            _req.model_state.model_name = model_name
-            _req.model_state.pose = model_state.pose
-            _req.model_state.pose.position.x += float(dx) / smoothness
-            _req.model_state.pose.position.y += float(dy) / smoothness
-            _req.model_state.pose.position.z += float(dz) / smoothness
-            _req.model_state.twist = model_state.twist
-            _req.model_state.scale = model_state.scale
-            _req.model_state.reference_frame = 'world'
-            self._move_proxy(_req)
-
-    def construct(self):
-        states = self.create_types()
-        with self.sm:
-            StateMachine.add(
-            "spawn_mugs",
-            states[0](mug_prefix="mug"),
-            transitions = {"success": "show_ball",
-                           "aborted": ERROR}
-            )
-            StateMachine.add(
-            "show_ball",
-            states[1](height=1.),
-            transitions = {"success": FINISHED,
-                           "aborted": ERROR}
-            )
-
-
-    def create_types(self):
-        return {0: self.construct_spawn_state(),
-                1: self.construct_show_ball_state()}
-
-
-    def construct_spawn_state(self, name="SpawnMugsState"):
-
-        def __init__(_self, mug_prefix, outcomes=['success', 'aborted']):
-            State.__init__(_self, outcomes=outcomes)
-            _self._mug_names = ["{}{}".format(mug_prefix, i) for i in range(self.num_mugs)]
-            _self._spawn_proxy = rospy.ServiceProxy('/gazebo/spawn_sdf_entity',
-                                                   SpawnEntity, persistent=True)
-            _self._spawn_msgs = list()
-
-            for i, mug_name in enumerate(_self._mug_names):
-                _msg = SpawnEntityRequest()
-                _msg.entity_name = mug_name
-                _msg.entity_xml = self.mug_sdf.format(mug_name=mug_name)
-                _msg.initial_pose.position.x = (i + 0.6)
-                _msg.initial_pose.position.y = 0.5
-                _msg.initial_pose.position.z = 0.5
-                _msg.reference_frame = "world"
-                _self._spawn_msgs.append(_msg)
-
-            self.start_ball = _self._mug_names[self.rnd.randint(0, self.num_mugs - 1)]
-
-
-        def execute(_self, userdata):
-            print("EXECUTE CALLED ON SPAWN MUGS")
-            for _mug_msg in _self._spawn_msgs:
-            	_self._spawn_proxy(_mug_msg)
-            return 'success'
-
-        return type(name, (State,),
-                    {
-                    "__init__": __init__,
-                    "execute": execute
-                    })
-
-    def construct_show_ball_state(self, name="ShowBallState"):
-
-        def __init__(_self, height, outcomes=['success', 'aborted']):
-            State.__init__(_self, outcomes=outcomes)
-            _self._height = height
-
-        def execute(_self, userdata):
-            spawn_proxy = rospy.ServiceProxy('/gazebo/spawn_sdf_entity',
-                                             SpawnEntity, persistent=True)
-            under_mug_pose = self._model_state_proxy(self.start_ball, 'world')
-            _msg = SpawnEntityRequest()
-            _msg.entity_name = "ball"
-            _msg.entity_xml = self.ball_sdf.format(ball_name=_msg.entity_name)
-            _msg.initial_pose.position = under_mug_pose.pose.position
-            _msg.initial_pose.position.z = 0
-            _msg.reference_frame = "world"
-            spawn_proxy(_msg)
-            self.move_continuosly(model_name=self.start_ball,
-                                  dz=_self._height, smoothness=100)
-            return "success"
-
-        return type(name, (State,),
-                    {
-                    "__init__": __init__,
-                    "execute": execute
-                    })
 
 FINISHED = 'FINISHED'
 ERROR = 'ERROR'
 PREEMPTED = 'PREEMPTED'
 
+thimblerigger = Thimblerigger(num_mugs=3,
+                              mug_sdf=tc.mug_sdf_xml, ball_sdf=tc.ball_sdf_xml,
+                              light_height=1.,
+                              seed=None)
 sm = StateMachine(outcomes=[FINISHED, ERROR, PREEMPTED])
-builder = StateMachineBuilder(sm=sm,
-                              mug_sdf=mug_sdf_xml, ball_sdf=ball_sdf_xml,
-                              num_mugs=4)
-builder.construct()
+with sm:
+    StateMachine.add("step",
+                     smach_ros.MonitorState(tc.thimblerigger_step_topic
+                                            Empty,
+                                            thimblerigger.step),
+                     transitions={"valid": "step",
+                                  "invalid": FINISHED}
+                    )

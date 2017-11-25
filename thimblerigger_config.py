@@ -1,5 +1,10 @@
 thimblerigger_started_topic = "start_thimblerigger_challenge_signal"
 thimblerigger_step_topic = "step_thimblerigger_challenge_signal"
+thimblerigger_stopped_topic = "stop_thimblerigger_challenge"
+
+thimblerigger_start_service = "start_thimblerigger_challenge"
+thimblerigger_step_service = "step_thimblerigger_challenge"
+thimblerigger_stop_service = "stop_thimblerigger_challenge"
 
 ball_sdf_xml = """
     <?xml version='1.0'?>

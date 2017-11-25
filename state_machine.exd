@@ -49,17 +49,18 @@ with sm:
     #StateMachine.add(
         #"wait_start",
         #smach_ros.MonitorState("/start_thimblerigger_challenge_signal", Empty, start_callback),
-        #transitions={"invalid": "step", "valid": "wait_start", "preempted": ERROR}
+        #transitions={"invalid": "visual_step", "valid": "wait_start", "preempted": ERROR}
     #)
 
-    StateMachine.add("step",
+    StateMachine.add("visual_step",
                      smach_ros.MonitorState(tc.thimblerigger_step_topic,
                                             Empty,
                                             thimblerigger.step),
-                     transitions={"valid": "step",
+                     transitions={"valid": "visual_step",
                                   "invalid": FINISHED,
                                   "preempted": PREEMPTED}
                     )
+
 
 
     clientLogger.info("Starting Thimblerigger challenge server...")
@@ -67,5 +68,5 @@ with sm:
     challenge_server.serve()
     clientLogger.info("Thimblerigger challenge server started.")
 
-stepper = Stepper()  # Dummy for automatically stepping through the challenge
-stepper.run_async()
+    #stepper = Stepper()  # Dummy for automatically stepping through the challenge
+    #stepper.run_async()

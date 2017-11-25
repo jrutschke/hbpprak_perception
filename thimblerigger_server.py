@@ -5,11 +5,13 @@ import time
 
 from hbp_nrp_excontrol.logs import clientLogger
 
+import thimblerigger_config as tc
+
 class ThimbleriggerChallengeServer(object):
     def __init__(self):
         self.running = False
-        self.challenge_started_pub = rospy.Publisher("start_thimblerigger_challenge_signal", Empty, queue_size=10)
-        self.step_pub = rospy.Publisher("step_thimblerigger_challenge_signal", Empty, queue_size=10)
+        self.challenge_started_pub = rospy.Publisher(tc.thimblerigger_started_topic, Empty, queue_size=10)
+        self.step_pub = rospy.Publisher(tc.thimblerigger_step_topic, Empty, queue_size=10)
 
     def handle_start(self, req):
         """
@@ -52,6 +54,6 @@ class ThimbleriggerChallengeServer(object):
 
     def serve(self):
         clientLogger.info("Starting Thimblerigger challenge server...")
-        start_service = rospy.Service("start_thimblerigger_challenge", Trigger, self.handle_start)
-        stop_service = rospy.Service("stop_thimblerigger_challenge", Trigger, self.handle_stop)
-        step_service = rospy.Service("step_thimblerigger_challenge", Trigger, self.handle_step)
+        start_service = rospy.Service(tc.thimblerigger_start_service, Trigger, self.handle_start)
+        stop_service = rospy.Service(tc.thimblerigger_stop_service, Trigger, self.handle_stop)
+        step_service = rospy.Service(tc.thimblerigger_step_service, Trigger, self.handle_step)

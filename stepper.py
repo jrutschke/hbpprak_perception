@@ -8,14 +8,16 @@ sys.path.append(os.path.join(os.path.dirname(__file__)))
 from hbp_nrp_excontrol.logs import clientLogger
 from thimblerigger_server import ThimbleriggerChallengeServer
 
+import thimblerigger_config as tc
+
 def run_challenge():
     """
     Step through the stages of the challenge.
     """
 
-    #start_service = "start_thimblerigger_challenge"
-    #stop_service = "stop_thimblerigger_challenge"
-    step_service = "step_thimblerigger_challenge"
+    #start_service = tc.thimblerigger_start_service
+    #stop_service = tc.thimblerigger_stop_service
+    step_service = tc.thimblerigger_step_service
 
     #rospy.wait_for_service(start_service)
     #rospy.wait_for_service(stop_service)
@@ -46,5 +48,6 @@ class Stepper(object):
         self.process = None
 
     def run_async(self):
+        clientLogger.info("WARNING: using auto-stepper! Only use this in debug mode!")
         self.process = multiprocessing.Process(target=run_challenge)
         self.process.start()

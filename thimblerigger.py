@@ -38,7 +38,7 @@ def simple_trigger_callback(func):
 
 class Thimblerigger(object):
 
-    def __init__(self, num_mugs=3, num_shuffles=1, mug_radius=0.3, mug_height=0.5, seed=None):
+    def __init__(self, num_mugs=3, num_shuffles=1, mug_radius=0.1, mug_height=0.15, seed=None):
         """
         Thimblerigger is a game challenge for the NRP simulator.
         There are some mugs on the ground.
@@ -143,7 +143,7 @@ class Thimblerigger(object):
             msg.entity_xml = self.mug_sdf.format(mug_name=mug_name,
                                                  radius=self.mug_radius,
                                                  length=self.mug_height)
-            msg.initial_pose.position.x = i + self.shuffle_displacement
+            msg.initial_pose.position.x = i * self.shuffle_displacement
             msg.initial_pose.position.y = 0
             msg.initial_pose.position.z = self.mug_height / 2
             msg.reference_frame = "world"
@@ -372,6 +372,11 @@ def find_cycles(a, b):
     from permutation a to permutation b.
 
     :param a: A list containing some elements
+    :param b: A list containing the same elements as a,
+              possibly in a diffferent order.
+
+    :returns the list of cycles to go from permutation a to permutation b.
+             Only cycles of at least length 2 are added.
     """
     assert sorted(a) == sorted(b)
     mapping = {i: b.index(a[i]) for i in range(len(a))}

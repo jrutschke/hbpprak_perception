@@ -221,7 +221,7 @@ class Thimblerigger(object):
             msg.entity_xml = self.ball_sdf.format(ball_name=msg.entity_name,
                                                   radius=self.ball_radius)
             msg.initial_pose.position = under_mug_pose.pose.position
-            msg.initial_pose.position.z = self.ball_radius / 2
+            msg.initial_pose.position.z = self.ball_radius
             msg.reference_frame = "world"
             self._spawn_proxy(msg)
             self._ball_spawned = True

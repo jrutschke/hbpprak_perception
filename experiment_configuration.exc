@@ -3,13 +3,13 @@
      xmlns="http://schemas.humanbrainproject.eu/SP10/2014/ExDConfig"
      xsi:schemaLocation="http://schemas.humanbrainproject.eu/SP10/2014/ExDConfig ../ExDConfFile.xsd">
     <name>HBP Praktical Perception</name>
-    <thumbnail>ExDTemplateICub.png</thumbnail>
+    <thumbnail>ExDThumbnail.png</thumbnail>
     <description>Thimblerigger</description>
     <timeout>840</timeout>
     <configuration type="3d-settings" src="ExDTemplateICub.3ds"/>
     <maturity>production</maturity>
     <environmentModel src="empty_world/empty_world.sdf">
-        <robotPose x="0.0" y="0.0" z="0.8" ux="0.0" uy="0.0" uz="1.57" theta="0.70710689672598181"/>
+        <robotPose x="-0.75" y="0.0" z="0.8" ux="0.0" uy="0.0" uz="1" theta="0.0"/> <!--0.70710689672598181-->
     </environmentModel>
     <bibiConf src="bibi_configuration.bibi"/>
     <experimentControl>

@@ -18,7 +18,7 @@ ball_sdf_xml = """
     <?xml version='1.0'?>
     <sdf version='1.5'>
       <model name='{ball_name}'>
-        <pose>0 0 .3 0 0 0</pose>
+        <pose>0 0 0 0 0 0</pose>
         <link name='{ball_name}'>
           <gravity>0</gravity>
           <inertial>
@@ -27,7 +27,7 @@ ball_sdf_xml = """
           <visual name='visual'>
             <geometry>
               <sphere>
-                <radius>0.15</radius>
+                <radius>{radius}</radius>
               </sphere>
             </geometry>
             <material>
@@ -57,8 +57,8 @@ mug_sdf_xml = """
           <visual name='visual'>
             <geometry>
               <cylinder>
-                <radius>.2</radius>
-                <length>.7</length>
+                <radius>{radius}</radius>
+                <length>{length}</length>
               </cylinder>
             </geometry>
             <material>

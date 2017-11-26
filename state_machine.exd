@@ -33,8 +33,6 @@ def step_callback(userdata, msg):
     return False
 
 thimblerigger = Thimblerigger(num_mugs=3,
-                              mug_sdf=tc.mug_sdf_xml, ball_sdf=tc.ball_sdf_xml,
-                              lift_height=1.,
                               seed=None)
 sm = StateMachine(outcomes=[FINISHED, ERROR, PREEMPTED])
 with sm:

@@ -13,6 +13,8 @@ thimblerigger_show_correct_service = namespace + "/show_correct_mug"
 thimblerigger_hide_correct_service = namespace + "/hide_correct_mug"
 thimblerigger_shuffle_service = namespace + "/shuffle"
 
+thimblerigger_training_topic = namespace + "/training_signal"
+training_signal_frequency = 10
 
 ball_sdf_xml = """
     <?xml version='1.0'?>

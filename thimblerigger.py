@@ -8,11 +8,11 @@ from gazebo_msgs.srv import GetModelState, SetModelState, \
                             DeleteModel, DeleteModelRequest, \
                             SpawnEntity, SpawnEntityRequest
 from std_srvs.srv import Trigger, TriggerResponse
-
+from std_msgs.msg import Int8
 from hbp_nrp_excontrol.logs import clientLogger
 
 import thimblerigger_config as tc
-
+from thread import start_new_thread
 
 def simple_trigger_callback(func):
     """
@@ -66,6 +66,8 @@ class Thimblerigger(object):
         # Mug naming
         self._mug_prefix = "mug"
         self._ball_name = "ball"
+        self.start_position = ["{}{}".format(self._mug_prefix, mug)
+                          for mug in range(num_mugs)]
         self.mug_order = ["{}{}".format(self._mug_prefix, mug)
                           for mug in range(num_mugs)]
 
@@ -76,6 +78,8 @@ class Thimblerigger(object):
         self.lift_height = 2 * self.mug_height
         self.shuffle_displacement = 4 * self.mug_radius
         self.ball_radius = 0.75 * self.mug_radius
+
+        self.mug_with_ball_intermediate_index = None
 
         # Get ROS proxies
         self._move_proxy = rospy.ServiceProxy('gazebo/set_model_state',
@@ -95,6 +99,7 @@ class Thimblerigger(object):
         self._ball_visible = None
         self._ball_spawned = None
         self.mug_with_ball = None
+        self.send_training_signal = False
 
         # Spawn mugs and setup resettable values
         self._setup()
@@ -102,6 +107,30 @@ class Thimblerigger(object):
         # Create services to control the thimblerigger
         self._offer_services()
 
+    def _start_training_signal(self):
+        """
+        Start a thread that publishes a training signal (the index of the correct mug)
+        with 10 Hz.
+        Displacement is not considered during training, i.e. the signal only changes
+        once the mug has moved into a new position.
+
+        When the scene is not currently shuffled or the correct ball shown,
+        a "-1" is published.
+        """
+        training_signal = rospy.Publisher(tc.thimblerigger_training_topic,
+                                               Int8, queue_size=4)
+
+        r = rospy.Rate(tc.training_signal_frequency)
+
+        def send():
+            while not rospy.is_shutdown():
+                if self.send_training_signal and self.mug_with_ball is not None:
+                    idx = self.mug_with_ball_intermediate_index
+                else:
+                    idx = -1
+                training_signal.publish(idx)
+                r.sleep()
+        start_new_thread(send, ())
 
     def _offer_services(self):
         """
@@ -112,12 +141,15 @@ class Thimblerigger(object):
         - Hiding the ball under the mug
         - Shuffling
 
+        Also starts a thread that publishes a training signal during shuffling.
+
         :returns None.
         """
         reset_service = rospy.Service(tc.thimblerigger_reset_service, Trigger, self.reset)
         show_correct_service = rospy.Service(tc.thimblerigger_show_correct_service, Trigger, self.show_mug_with_ball)
         hide_correct_service = rospy.Service(tc.thimblerigger_hide_correct_service, Trigger, self.hide_ball_under_mug)
         shuffle_service = rospy.Service(tc.thimblerigger_shuffle_service, Trigger, self.shuffle)
+        self._start_training_signal()
 
     def _setup(self):
         """
@@ -136,8 +168,9 @@ class Thimblerigger(object):
 
         :returns True.
         """
-        clientLogger.info("Spawning {} mugs.".format(len(self.mug_order)))
-        for i, mug_name in enumerate(self.mug_order):
+        clientLogger.info("Spawning {} mugs.".format(len(self.start_position)))
+        self.mug_order = self.start_position
+        for i, mug_name in enumerate(self.start_position):
             msg = SpawnEntityRequest()
             msg.entity_name = mug_name
             msg.entity_xml = self.mug_sdf.format(mug_name=mug_name,
@@ -163,6 +196,7 @@ class Thimblerigger(object):
         clientLogger.info("(Re)setting thimblerigger experiment.")
         self._despawn_ball()
         self._hide_ball()
+        self.send_training_signal = False
 
         for mug_name in self.mug_order:
             msg = DeleteModelRequest()
@@ -182,6 +216,7 @@ class Thimblerigger(object):
         """
         clientLogger.info("Choosing random mug for ball.")
         self.mug_with_ball = random.choice(self.mug_order)
+        self.mug_with_ball_intermediate_index = self.mug_order.index(self.mug_with_ball)
 
     @simple_trigger_callback
     def show_mug_with_ball(self):
@@ -193,6 +228,7 @@ class Thimblerigger(object):
         clientLogger.info("Showing which mug contains the ball.")
         self._spawn_ball()
         self._show_ball()
+        self.send_training_signal = True
         return self._ball_spawned and self._ball_visible
 
     @simple_trigger_callback
@@ -332,6 +368,9 @@ class Thimblerigger(object):
                     displaced[goto_mug] = True
 
                 move_into(mug_name, pose_to)
+                if mug_name == self.mug_with_ball:
+                    self.mug_with_ball_intermediate_index = new_order.index(mug_name)
+
 
         # Update the current order of the mugs
         self.mug_order = new_order

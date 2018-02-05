@@ -16,6 +16,13 @@ thimblerigger_shuffle_service = namespace + "/shuffle"
 thimblerigger_training_topic = namespace + "/training_signal"
 training_signal_frequency = 10
 
+
+num_mugs = 3  # Number of mugs, should be 3 for the final challenge
+num_shuffles = 1  # Number of permutations the configuration goes through while shuffling
+seed = None  # Random seed for shuffling and choice of ball start position
+
+
+# Do not change these, they are descriptors for the mug and ball mesh
 ball_sdf_xml = """
     <?xml version='1.0'?>
     <sdf version='1.5'>

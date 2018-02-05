@@ -4,8 +4,9 @@
      xsi:schemaLocation="http://schemas.humanbrainproject.eu/SP10/2014/ExDConfig ../ExDConfFile.xsd">
     <name>PerceptionChallengeKIT</name>
     <thumbnail>ExDThumbnail.png</thumbnail>
-    <description>Thimblerigger</description>
-    <timeout>5000</timeout>
+    <description>Thimblerigger Challenge of the KIT practical "Virtual Neurorobotics".
+    Track a ball under mugs that are being shuffled around.</description>
+    <timeout>600</timeout>
     <configuration type="3d-settings" src="ExDTemplateICub.3ds"/>
     <maturity>production</maturity>
     <environmentModel src="empty_world/empty_world.sdf">

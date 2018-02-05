@@ -133,5 +133,7 @@ with sm:
     challenge_server.serve()
     clientLogger.info("Thimblerigger challenge server started.")
 
-#stepper = Stepper()  # Dummy for automatically stepping through the challenge
+
+# Uncomment the following lines if you want the challenge to run automatically
+#stepper = Stepper()
 #stepper.run_async()

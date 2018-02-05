@@ -14,26 +14,19 @@ def run_challenge():
     """
     Step through the stages of the challenge.
     """
-
-    #start_service = tc.thimblerigger_start_service
-    #stop_service = tc.thimblerigger_stop_service
     step_service = tc.thimblerigger_step_service
-
-    #rospy.wait_for_service(start_service)
-    #rospy.wait_for_service(stop_service)
     rospy.wait_for_service(step_service)
-
-    #clientLogger.info("Making start challenge service call...")
-    #start_client = rospy.ServiceProxy(start_service, Trigger)
-    #try:
-        #res = start_client()
-    #except rospy.ServiceException as exc:
-        #clientLogger.info("Service did not process request: " + str(exc))
 
     step_client = rospy.ServiceProxy(step_service, Trigger)
     try:
         time.sleep(3)
-        res = step_client() # Do one "step" in the challenge
+        res = step_client() # Lift mug
+        time.sleep(3)
+        res = step_client() # Hide mug
+        time.sleep(3)
+        res = step_client() # Shuffle
+        time.sleep(5)
+        res = step_client() # Show correct mug
     except rospy.ServiceException as exc:
         clientLogger.info("Service did not process request: " + str(exc))
 

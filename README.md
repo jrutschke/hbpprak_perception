@@ -54,6 +54,11 @@ The 3 indices `[0, 1, 2]` are arranged as follows:
 If you reset the challenge with the service call, the training signal will be reset, too.
 The index switches every time the mug has reached its goal position during shuffling, but not in between.
 
+### Auto-stepper
+
+If you don't want/need to manually trigger the different stages of the challenge via the ROS service calls, there is an auto-stepper which can
+automatically trigger the stages of the challenge for you. It is implemented in stepper.py. To use it, simply uncomment the last two lines in the state machine.
+
 ## What am I allowed to modify?
 
 ### What you shouldn't modify

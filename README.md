@@ -20,8 +20,10 @@ robot. These cylinders represent 3 mugs. One of the mugs contains a green ball.
 The goal of the challenge is to:
 
   - Check which mug contains the ball
-  - Track that mug during shuffling
-  - Tell which mug contains the ball
+  - Track that mug during shuffling. Shuffling computes  *n* random permutations of the mug order and
+moves the mugs into the corresponding positions.
+At most 2 mugs are displaced at one time, one to either side of the original lane.
+  - Tell which mug contains the ball in any way, e.g.: Publish an index, point the robot to the correct mug, ...
 
 ## Interacting with the experiment
 
@@ -40,7 +42,7 @@ You can also use a stepping mechanism (implemented in the state machine):
 | Service name | Service Type | Description |
 | ------------ | ------------ | ----------- |
 |/thimblerigger/start_challenge|std_srvs/Trigger|Once the simulation is running, starts the thimblerigger state machine|
-|/thimblerigger/step_challenge|std_srvs/Trigger|Steps through the challenge in this order: - Show correct mug - Hide correct mug - Shuffle - Show correct mug - (Then the state machine exits, feel free to implement a loop)|
+|/thimblerigger/step_challenge|std_srvs/Trigger|Steps through the challenge in this order (one step per service call): `Show correct mug - Hide correct mug - Shuffle - Show correct mug - (Then the state machine exits, feel free to implement a loop/reset mechanism)`|
 |/thimblerigger/stop_challenge|std_srvs/Trigger| Currently not used|
 
 ### Training signal

@@ -69,7 +69,7 @@ You should not fiddle with the following files (and any references to one of the
  - `thimblerigger.py` (this is where most interesting stuff happens)
 
 Feel free to read through them for further information how the challenge works internally,
-the `thimblerigger*.py` files are well documented.
+the `thimblerigger*.py` files are well documented. You can find doxygen pages in the `docs` folder.
 
 ### Things that you should definitely change
 

@@ -108,8 +108,8 @@ Collaboration diagram for thimblerigger.Thimblerigger:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:acae8ab714f54c3f701dfc2dd6fb22704"><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classthimblerigger_1_1Thimblerigger.html#acae8ab714f54c3f701dfc2dd6fb22704">__init__</a> (self, num_mugs=3, num_shuffles=1, mug_radius=0.1, mug_height=0.15, seed=None)</td></tr>
-<tr class="separator:acae8ab714f54c3f701dfc2dd6fb22704"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a34788bd8195b1ebd76e76a0eb665ee18"><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classthimblerigger_1_1Thimblerigger.html#a34788bd8195b1ebd76e76a0eb665ee18">__init__</a> (self, num_mugs=3, num_shuffles=1, mug_radius=0.1, mug_height=0.15, seed=None, movement_rate=None)</td></tr>
+<tr class="separator:a34788bd8195b1ebd76e76a0eb665ee18"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7198939b327adbba670b58b310556d05"><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classthimblerigger_1_1Thimblerigger.html#a7198939b327adbba670b58b310556d05">reset</a> (self)</td></tr>
 <tr class="separator:a7198939b327adbba670b58b310556d05"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aece869c0bf0650d676c9d171224a929e"><td class="memItemLeft" align="right" valign="top">def&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classthimblerigger_1_1Thimblerigger.html#aece869c0bf0650d676c9d171224a929e">choose_mug_for_ball</a> (self)</td></tr>
@@ -157,6 +157,9 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a78d0df2afc03a5b6286715d9e386f1f8"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a78d0df2afc03a5b6286715d9e386f1f8"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>ball_radius</b></td></tr>
 <tr class="separator:a78d0df2afc03a5b6286715d9e386f1f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3b7c954f3f4ad08807d5b72f021af561"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3b7c954f3f4ad08807d5b72f021af561"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>movement_rate</b></td></tr>
+<tr class="separator:a3b7c954f3f4ad08807d5b72f021af561"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab7b7fe3d00cc03647329282ed765456c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab7b7fe3d00cc03647329282ed765456c"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>mug_with_ball_intermediate_index</b></td></tr>
 <tr class="separator:ab7b7fe3d00cc03647329282ed765456c"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -168,7 +171,7 @@ Public Attributes</h2></td></tr>
 <tr class="separator:ac83105705969ba7f738050440c3777fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a class="anchor" id="acae8ab714f54c3f701dfc2dd6fb22704"></a>
+<a class="anchor" id="a34788bd8195b1ebd76e76a0eb665ee18"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -206,7 +209,13 @@ Public Attributes</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">&#160;</td>
-          <td class="paramname"><em>seed</em> = <code>None</code>&#160;</td>
+          <td class="paramname"><em>seed</em> = <code>None</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname"><em>movement_rate</em> = <code>None</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -228,6 +237,9 @@ In the end, the robot has to identify which mug the ball is under.
 All movements will scale to fit the radius and height parameters.
 :param seed: Seed for the random number generator controlling which mug the ball is under
      and what shuffling permutations are generated.
+:param movement_rate: Rate in Hz which is used to publish to movement topics, e.g. shuffling the mugs.
+              A lower rate will wait longer between intermediate steps.
+              Use this to control the time if you brain simulation is slow.
 </pre> 
 </div>
 </div>

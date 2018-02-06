@@ -21,7 +21,7 @@ Collaboration diagram for thimblerigger.\+Thimblerigger\+:\nopagebreak
 \subsection*{Public Member Functions}
 \begin{DoxyCompactItemize}
 \item 
-def \hyperlink{classthimblerigger_1_1Thimblerigger_acae8ab714f54c3f701dfc2dd6fb22704}{\+\_\+\+\_\+init\+\_\+\+\_\+} (self, num\+\_\+mugs=3, num\+\_\+shuffles=1, mug\+\_\+radius=0.\+1, mug\+\_\+height=0.\+15, seed=None)
+def \hyperlink{classthimblerigger_1_1Thimblerigger_a34788bd8195b1ebd76e76a0eb665ee18}{\+\_\+\+\_\+init\+\_\+\+\_\+} (self, num\+\_\+mugs=3, num\+\_\+shuffles=1, mug\+\_\+radius=0.\+1, mug\+\_\+height=0.\+15, seed=None, movement\+\_\+rate=None)
 \item 
 def \hyperlink{classthimblerigger_1_1Thimblerigger_a7198939b327adbba670b58b310556d05}{reset} (self)
 \item 
@@ -70,6 +70,9 @@ def {\bfseries shuffle} (self)\hypertarget{classthimblerigger_1_1Thimblerigger_a
 {\bfseries ball\+\_\+radius}\hypertarget{classthimblerigger_1_1Thimblerigger_a78d0df2afc03a5b6286715d9e386f1f8}{}\label{classthimblerigger_1_1Thimblerigger_a78d0df2afc03a5b6286715d9e386f1f8}
 
 \item 
+{\bfseries movement\+\_\+rate}\hypertarget{classthimblerigger_1_1Thimblerigger_a3b7c954f3f4ad08807d5b72f021af561}{}\label{classthimblerigger_1_1Thimblerigger_a3b7c954f3f4ad08807d5b72f021af561}
+
+\item 
 {\bfseries mug\+\_\+with\+\_\+ball\+\_\+intermediate\+\_\+index}\hypertarget{classthimblerigger_1_1Thimblerigger_ab7b7fe3d00cc03647329282ed765456c}{}\label{classthimblerigger_1_1Thimblerigger_ab7b7fe3d00cc03647329282ed765456c}
 
 \item 
@@ -84,16 +87,17 @@ def {\bfseries shuffle} (self)\hypertarget{classthimblerigger_1_1Thimblerigger_a
 \subsection{Constructor \& Destructor Documentation}
 \index{thimblerigger\+::\+Thimblerigger@{thimblerigger\+::\+Thimblerigger}!\+\_\+\+\_\+init\+\_\+\+\_\+@{\+\_\+\+\_\+init\+\_\+\+\_\+}}
 \index{\+\_\+\+\_\+init\+\_\+\+\_\+@{\+\_\+\+\_\+init\+\_\+\+\_\+}!thimblerigger\+::\+Thimblerigger@{thimblerigger\+::\+Thimblerigger}}
-\subsubsection[{\texorpdfstring{\+\_\+\+\_\+init\+\_\+\+\_\+(self, num\+\_\+mugs=3, num\+\_\+shuffles=1, mug\+\_\+radius=0.\+1, mug\+\_\+height=0.\+15, seed=\+None)}{__init__(self, num_mugs=3, num_shuffles=1, mug_radius=0.1, mug_height=0.15, seed=None)}}]{\setlength{\rightskip}{0pt plus 5cm}def thimblerigger.\+Thimblerigger.\+\_\+\+\_\+init\+\_\+\+\_\+ (
+\subsubsection[{\texorpdfstring{\+\_\+\+\_\+init\+\_\+\+\_\+(self, num\+\_\+mugs=3, num\+\_\+shuffles=1, mug\+\_\+radius=0.\+1, mug\+\_\+height=0.\+15, seed=\+None, movement\+\_\+rate=\+None)}{__init__(self, num_mugs=3, num_shuffles=1, mug_radius=0.1, mug_height=0.15, seed=None, movement_rate=None)}}]{\setlength{\rightskip}{0pt plus 5cm}def thimblerigger.\+Thimblerigger.\+\_\+\+\_\+init\+\_\+\+\_\+ (
 \begin{DoxyParamCaption}
 \item[{}]{self, }
 \item[{}]{num\+\_\+mugs = {\ttfamily 3}, }
 \item[{}]{num\+\_\+shuffles = {\ttfamily 1}, }
 \item[{}]{mug\+\_\+radius = {\ttfamily 0.1}, }
 \item[{}]{mug\+\_\+height = {\ttfamily 0.15}, }
-\item[{}]{seed = {\ttfamily None}}
+\item[{}]{seed = {\ttfamily None}, }
+\item[{}]{movement\+\_\+rate = {\ttfamily None}}
 \end{DoxyParamCaption}
-)}\hypertarget{classthimblerigger_1_1Thimblerigger_acae8ab714f54c3f701dfc2dd6fb22704}{}\label{classthimblerigger_1_1Thimblerigger_acae8ab714f54c3f701dfc2dd6fb22704}
+)}\hypertarget{classthimblerigger_1_1Thimblerigger_a34788bd8195b1ebd76e76a0eb665ee18}{}\label{classthimblerigger_1_1Thimblerigger_a34788bd8195b1ebd76e76a0eb665ee18}
 \begin{DoxyVerb}Thimblerigger is a game challenge for the NRP simulator.
 There are some mugs on the ground.
 The robot is shown a ball under one of the mugs.
@@ -107,6 +111,9 @@ In the end, the robot has to identify which mug the ball is under.
 All movements will scale to fit the radius and height parameters.
 :param seed: Seed for the random number generator controlling which mug the ball is under
      and what shuffling permutations are generated.
+:param movement_rate: Rate in Hz which is used to publish to movement topics, e.g. shuffling the mugs.
+              A lower rate will wait longer between intermediate steps.
+              Use this to control the time if you brain simulation is slow.
 \end{DoxyVerb}
  
 

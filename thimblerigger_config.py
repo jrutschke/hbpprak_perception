@@ -20,7 +20,8 @@ training_signal_frequency = 10
 num_mugs = 3  # Number of mugs, should be 3 for the final challenge
 num_shuffles = 1  # Number of permutations the configuration goes through while shuffling
 seed = None  # Random seed for shuffling and choice of ball start position
-
+movement_rate = None # None equals full speed. Lower values indicate slower movements,
+                     # allowing to mitigate slow simulations where the camera misses some frames.
 
 # Do not change these, they are descriptors for the mug and ball mesh
 ball_sdf_xml = """

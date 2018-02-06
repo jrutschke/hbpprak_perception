@@ -32,7 +32,7 @@ def step_callback(userdata, msg):
 
 thimblerigger = Thimblerigger(num_mugs=tc.num_mugs,
                               num_shuffles=tc.num_shuffles,
-                              seed=tc.seed)
+                              seed=tc.seed, movement_rate=tc.movement_rate)
 
 sm = StateMachine(outcomes=[FINISHED, ERROR, PREEMPTED])
 with sm:

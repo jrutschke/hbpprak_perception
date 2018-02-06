@@ -38,7 +38,8 @@ def simple_trigger_callback(func):
 
 class Thimblerigger(object):
 
-    def __init__(self, num_mugs=3, num_shuffles=1, mug_radius=0.1, mug_height=0.15, seed=None):
+    def __init__(self, num_mugs=3, num_shuffles=1, mug_radius=0.1, mug_height=0.15,
+                 seed=None, movement_rate=None):
         """
         Thimblerigger is a game challenge for the NRP simulator.
         There are some mugs on the ground.
@@ -53,6 +54,9 @@ class Thimblerigger(object):
         All movements will scale to fit the radius and height parameters.
         :param seed: Seed for the random number generator controlling which mug the ball is under
                      and what shuffling permutations are generated.
+        :param movement_rate: Rate in Hz which is used to publish to movement topics, e.g. shuffling the mugs.
+                              A lower rate will wait longer between intermediate steps.
+                              Use this to control the time if you brain simulation is slow.
         """
 
         # SDFs to spawn objects
@@ -78,6 +82,9 @@ class Thimblerigger(object):
         self.lift_height = 2 * self.mug_height
         self.shuffle_displacement = 4 * self.mug_radius
         self.ball_radius = 0.75 * self.mug_radius
+        self.movement_rate = movement_rate
+        if self.movement_rate is not None and self.movement_rate < 0:
+            raise ValueError("Movement rate must be greater than 0.")
 
         self.mug_with_ball_intermediate_index = None
 
@@ -384,14 +391,23 @@ class Thimblerigger(object):
         :param dx, dy, dz: Displacement along the (x,y,z)-axes.
         :param smoothness: How smooth the movement should be.
                            The higher the smoother, the lower the faster.
-
         :returns None.
         """
 
         # Smoothness higher than 1 might cause some slight position errors
         # due to floating point errors
         smoothness = max(1, smoothness)
+        if self.movement_rate is not None:
+            rate = rospy.Rate(self.movement_rate)
+        else:
+            class Rate(object):
+
+                def sleep(self):
+                    pass
+            rate = Rate()
+
         for i in range(smoothness):
+
             model_state = self._model_state_proxy(model_name, 'world')
             msg = SetModelStateRequest()
             msg.model_state.model_name = model_name
@@ -403,6 +419,7 @@ class Thimblerigger(object):
             msg.model_state.scale = model_state.scale
             msg.model_state.reference_frame = 'world'
             self._move_proxy(msg)
+            rate.sleep()
 
 
 def find_cycles(a, b):

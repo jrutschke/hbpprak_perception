@@ -58,6 +58,10 @@ There is a training signal for supervised training being published under the top
 
 The 3 indices {\ttfamily \mbox{[}0, 1, 2\mbox{]}} are arranged as follows\+: {\ttfamily 0} is closest to the default robot starting position, {\ttfamily 2} the furthest away. If you reset the challenge with the service call, the training signal will be reset, too. The index switches every time the mug has reached its goal position during shuffling, but not in between.
 
+\subsubsection*{Auto-\/stepper}
+
+If you don\textquotesingle{}t want/need to manually trigger the different stages of the challenge via the R\+OS service calls, there is an auto-\/stepper which can automatically trigger the stages of the challenge for you. It is implemented in stepper.\+py. To use it, simply uncomment the last two lines in the state machine.
+
 \subsection*{What am I allowed to modify?}
 
 \subsubsection*{What you shouldn\textquotesingle{}t modify}
@@ -74,7 +78,7 @@ You should not fiddle with the following files (and any references to one of the
 \item {\ttfamily thimblerigger.\+py} (this is where most interesting stuff happens)
 \end{DoxyItemize}
 
-Feel free to read through them for further information how the challenge works internally, the {\ttfamily thimblerigger$\ast$.py} files are well documented.
+Feel free to read through them for further information how the challenge works internally, the {\ttfamily thimblerigger$\ast$.py} files are well documented. You can find doxygen pages in the {\ttfamily docs} folder.
 
 \subsubsection*{Things that you should definitely change}
 

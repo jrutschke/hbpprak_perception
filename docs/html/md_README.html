@@ -118,6 +118,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <h3>Training signal</h3>
 <p>There is a training signal for supervised training being published under the topic <code>/thimblerigger/training_signal</code>. It publishes the index of the correct mug, as soon as it is known (meaning before the <code>/thimblerigger/show_correct_mug</code> service is called, a *-1* is published).</p>
 <p>The 3 indices <code>[0, 1, 2]</code> are arranged as follows: <code>0</code> is closest to the default robot starting position, <code>2</code> the furthest away. If you reset the challenge with the service call, the training signal will be reset, too. The index switches every time the mug has reached its goal position during shuffling, but not in between.</p>
+<h3>Auto-stepper</h3>
+<p>If you don't want/need to manually trigger the different stages of the challenge via the ROS service calls, there is an auto-stepper which can automatically trigger the stages of the challenge for you. It is implemented in stepper.py. To use it, simply uncomment the last two lines in the state machine.</p>
 <h2>What am I allowed to modify?</h2>
 <h3>What you shouldn't modify</h3>
 <p>There is a configuration file <code>thimblerigger_config.py</code>, that allows to configure things like topic names. The paragraph above assumes that you have not changed those.</p>
@@ -128,7 +130,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <li><code>thimblerigger_server.py</code></li>
 <li><code>thimblerigger.py</code> (this is where most interesting stuff happens)</li>
 </ul>
-<p>Feel free to read through them for further information how the challenge works internally, the <code>thimblerigger*.py</code> files are well documented.</p>
+<p>Feel free to read through them for further information how the challenge works internally, the <code>thimblerigger*.py</code> files are well documented. You can find doxygen pages in the <code>docs</code> folder.</p>
 <h3>Things that you should definitely change</h3>
 <p>In <code>bibi_configuration.bibi</code>:</p>
 <ul>

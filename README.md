@@ -57,7 +57,7 @@ The index switches every time the mug has reached its goal position during shuff
 ### Auto-stepper
 
 If you don't want/need to manually trigger the different stages of the challenge via the ROS service calls, there is an auto-stepper which can
-automatically trigger the stages of the challenge for you. It is implemented in stepper.py. To use it, simply uncomment the last two lines in the state machine.
+automatically trigger the stages of the challenge for you. It is implemented in `stepper.py`. To use it, simply uncomment the last two lines in the state machine.
 
 ## What am I allowed to modify?
 
@@ -97,6 +97,9 @@ will allow you to have the brain file within your solution fork of the challenge
 
 In `thimblerigger_config.py`:
   - *num_mugs*, *num_shuffles* and *seed*.  The final challenge uses 3 cups, 1 shuffle, and the seed for shuffling and choice of which mug contains the ball should be random (i.e. `seed = None`).
+  - *movement_rate*: This parameter can be used to slow down movement of the mugs. The default value of `None` does not slow it down at all.
+                     This can be useful if your brain simulation is too slow and the camera does not pick up intermediate frames.
+                     Lower values correspond with slower movement.
 
 Additionally, you might want to modify:
 

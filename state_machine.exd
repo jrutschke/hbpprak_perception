@@ -1,0 +1,139 @@
+import os, sys
+
+from std_msgs.msg import Empty
+from std_srvs.srv import Trigger
+
+from smach import StateMachine
+from smach.state import State
+import smach_ros
+import rospy
+
+import hbp_nrp_excontrol.nrp_states as states
+from hbp_nrp_excontrol.logs import clientLogger
+
+sys.path.append(os.path.join(os.path.dirname(__file__)))
+
+import thimblerigger_config as tc
+from thimblerigger_server import ThimbleriggerChallengeServer
+from thimblerigger import Thimblerigger
+from stepper import Stepper
+
+
+FINISHED = 'FINISHED'
+ERROR = 'ERROR'
+PREEMPTED = 'PREEMPTED'
+
+
+def start_callback(userdata, msg):
+    return False
+
+def step_callback(userdata, msg):
+    return False
+
+thimblerigger = Thimblerigger(num_mugs=tc.num_mugs,
+                              num_shuffles=tc.num_shuffles,
+                              seed=tc.seed, movement_rate=tc.movement_rate)
+
+sm = StateMachine(outcomes=[FINISHED, ERROR, PREEMPTED])
+with sm:
+
+    # Wait for challenge start signal
+    StateMachine.add(
+        "wait_start",
+        smach_ros.MonitorState(tc.thimblerigger_started_topic, Empty, start_callback),
+        transitions={"valid": "wait_start", "invalid": "wait_lift_mug", "preempted": PREEMPTED}
+    )
+
+    # Wait until the user wants to lift the correct mug to see which one she needs to track
+    StateMachine.add(
+        "wait_lift_mug",
+        smach_ros.MonitorState(tc.thimblerigger_step_topic, Empty, step_callback),
+        transitions={"valid": "wait_lift_mug",
+                     "invalid": "lift_correct_mug",
+                     "preempted": PREEMPTED}
+    )
+
+    # Lift the correct mug
+    StateMachine.add(
+        "lift_correct_mug",
+        smach_ros.ServiceState(tc.thimblerigger_show_correct_service, Trigger),
+        transitions={"succeeded": "wait_hide_mug",
+                     "aborted": ERROR,
+                     "preempted": PREEMPTED
+                    }
+    )
+
+    # Wait until the user wants to hide the correct mug again
+    StateMachine.add(
+        "wait_hide_mug",
+        smach_ros.MonitorState(tc.thimblerigger_step_topic, Empty, step_callback),
+        transitions={"valid": "wait_hide_mug",
+                     "invalid": "hide_correct_mug",
+                     "preempted": PREEMPTED}
+    )
+
+    # Hide the correct mug again
+    StateMachine.add(
+        "hide_correct_mug",
+        smach_ros.ServiceState(tc.thimblerigger_hide_correct_service, Trigger),
+        transitions={"succeeded": "wait_shuffle",
+                     "aborted": ERROR,
+                     "preempted": PREEMPTED
+                    }
+    )
+
+    # Wait until the user want to shuffle
+    StateMachine.add(
+        "wait_shuffle",
+        smach_ros.MonitorState(tc.thimblerigger_step_topic, Empty, step_callback),
+        transitions={"valid": "wait_shuffle",
+                     "invalid": "shuffle",
+                     "preempted": PREEMPTED}
+    )
+
+    # Shuffle the mugs
+    StateMachine.add(
+        "shuffle",
+        smach_ros.ServiceState(tc.thimblerigger_shuffle_service, Trigger),
+        transitions={"succeeded": "wait_lift_mug2",
+                     "aborted": ERROR,
+                     "preempted": PREEMPTED
+                    }
+    )
+
+    StateMachine.add(
+        "wait_lift_mug2",
+        smach_ros.MonitorState(tc.thimblerigger_step_topic, Empty, step_callback),
+        transitions={"valid": "wait_lift_mug2",
+                     "invalid": "lift_correct_mug2",
+                     "preempted": PREEMPTED}
+    )
+
+    # Lift the correct mug
+    StateMachine.add(
+        "lift_correct_mug2",
+        smach_ros.ServiceState(tc.thimblerigger_show_correct_service, Trigger),
+        transitions={"succeeded": "wait",
+                     "aborted": ERROR,
+                     "preempted": PREEMPTED
+                    }
+    )
+
+    StateMachine.add(
+        "wait",
+        smach_ros.MonitorState(tc.thimblerigger_step_topic, Empty, step_callback),
+        transitions={"valid": FINISHED,
+                     "invalid": ERROR,
+                     "preempted": PREEMPTED}
+    )
+
+
+    clientLogger.info("Starting Thimblerigger challenge server...")
+    challenge_server = ThimbleriggerChallengeServer()
+    challenge_server.serve()
+    clientLogger.info("Thimblerigger challenge server started.")
+
+
+# Uncomment the following lines if you want the challenge to run automatically
+#stepper = Stepper()
+#stepper.run_async()

@@ -8,7 +8,7 @@ from gazebo_msgs.srv import GetModelState, SetModelState, \
                             DeleteModel, DeleteModelRequest, \
                             SpawnEntity, SpawnEntityRequest
 from std_srvs.srv import Trigger, TriggerResponse
-from std_msgs.msg import Int8
+from std_msgs.msg import Int8, String
 from hbp_nrp_excontrol.logs import clientLogger
 
 import thimblerigger_config as tc
@@ -59,6 +59,7 @@ class Thimblerigger(object):
                               Use this to control the time if you brain simulation is slow.
         """
 
+        
         # SDFs to spawn objects
         self.mug_sdf = tc.mug_sdf_xml
         self.ball_sdf = tc.ball_sdf_xml
@@ -101,7 +102,9 @@ class Thimblerigger(object):
         self._despawn_proxy = rospy.ServiceProxy("gazebo/delete_model",
                                                  DeleteModel,
                                                  persistent=True)
-
+        #Publish current state as a string, set current state as start
+        self.status_pub = rospy.Publisher("/group04/status", String)
+        
         # Resettable values
         self._ball_visible = None
         self._ball_spawned = None
@@ -212,7 +215,8 @@ class Thimblerigger(object):
 
         self._spawn_mugs()
         self.choose_mug_for_ball()
-
+        self.status_pub.publish(tc.thimblerigger_state_start_reset)
+        
         return True
 
     def choose_mug_for_ball(self):
@@ -233,6 +237,7 @@ class Thimblerigger(object):
         :returns True, if the mug was lifted and the ball is visible.
         """
         clientLogger.info("Showing which mug contains the ball.")
+        self.status_pub.publish(tc.thimblerigger_state_lift_correct_mug)
         self._spawn_ball()
         self._show_ball()
         self.send_training_signal = True
@@ -246,6 +251,7 @@ class Thimblerigger(object):
         :return True, if the mug was lowered and the ball is invisible.
         """
         clientLogger.info("Hiding ball under mug again.")
+        self.status_pub.publish(tc.thimblerigger_state_hide_correct_mug)
         self._hide_ball()
         self._despawn_ball()
         return not self._ball_spawned and not self._ball_visible
@@ -306,10 +312,10 @@ class Thimblerigger(object):
     @simple_trigger_callback
     def shuffle(self):
         clientLogger.info("Shuffeling mugs {} times now.".format(self.num_shuffles))
-
+        self.status_pub.publish(tc.thimblerigger_state_shuffle)
         for _ in range(self.num_shuffles):
             self._shuffle_once(displacement=self.shuffle_displacement)
-
+        self.status_pub.publish(tc.thimblerigger_state_wait)
         return True
 
     def _shuffle_once(self, displacement):

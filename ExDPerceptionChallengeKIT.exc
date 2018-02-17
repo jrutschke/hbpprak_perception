@@ -6,11 +6,11 @@
     <thumbnail>ExDThumbnail.png</thumbnail>
     <description>Thimblerigger Challenge of the KIT practical "Virtual Neurorobotics".
     Track a ball under mugs that are being shuffled around.</description>
-    <timeout>600</timeout>
+    <timeout>60000</timeout>
     <configuration type="3d-settings" src="ExDTemplateICub.3ds"/>
     <maturity>production</maturity>
     <environmentModel src="empty_world/empty_world.sdf">
-        <robotPose x="-0.75" y="0.0" z="0.8" ux="0.0" uy="0.0" uz="1" theta="0.0"/>
+        <robotPose x="0.4" y="1.0" z="0.7" ux="0.0" uy="0.0" uz="0.3" theta=".3"/>
     </environmentModel>
     <bibiConf src="bibi_configuration.bibi"/>
     <experimentControl>

@@ -103,8 +103,8 @@ class Thimblerigger(object):
                                                  DeleteModel,
                                                  persistent=True)
         #Publish current state as a string, set current state as start
-        self.status_pub = rospy.Publisher("/group04/status", String)
-        
+        self.status_pub = rospy.Publisher(tc.thimblerigger_state_topic, String, queue_size=10)
+      
         # Resettable values
         self._ball_visible = None
         self._ball_spawned = None

@@ -10,10 +10,12 @@ import std_msgs.msg
 @nrp.MapRobotPublisher("neck_yaw", Topic("/robot/neck_yaw/pos", std_msgs.msg.Float64))
 @nrp.MapRobotPublisher('eye_tilt_pos', Topic('/robot/eye_tilt/pos', std_msgs.msg.Float64))
 @nrp.MapRobotSubscriber("state", Topic("/group04/status", std_msgs.msg.String))
+@nrp.MapRobotSubscriber("training_signal", Topic("/thimblerigger/training_signal", std_msgs.msg.Int8))
 @nrp.MapVariable("previous_state", initial_value=None, scope=nrp.GLOBAL)
+@nrp.MapVariable("correct_mug", initial_value=None, scope=nrp.GLOBAL)
 @nrp.Neuron2Robot()
 
-def follow_object(t, motors_down, motors_left, motors_up, motors_right, joint_state_sub, state, neck_pitch, neck_yaw, eye_tilt_pos, previous_state):
+def follow_object(t, motors_down, motors_left, motors_up, motors_right, joint_state_sub, state, neck_pitch, neck_yaw, eye_tilt_pos, training_signal, correct_mug, previous_state):
 
 	# we need the current joint positions
 	if joint_state_sub is not None:
@@ -32,6 +34,13 @@ def follow_object(t, motors_down, motors_left, motors_up, motors_right, joint_st
 				neck_pitch.send_message(std_msgs.msg.Float64(-0.5))
 				neck_yaw.send_message(std_msgs.msg.Float64(0.0))
 				eye_tilt_pos.send_message(std_msgs.msg.Float64(0.0))
+			# after we shuffled and made our prediction, when mug is lifted check if we were right
+			elif ((previous_state.value == "wait") & (current_state == "lift_correct_mug")):
+				#clientLogger.info(correct_mug.value)
+				if (training_signal.value.data == correct_mug.value):
+					clientLogger.advertise("SUCCESS: Robot picked correct mug.")
+				else:
+					clientLogger.advertise("FAILURE: Robot picked wrong mug.")
 			#when cup is lifted we need to center on the green ball
 			elif (current_state == "lift_correct_mug"):
 				#set eyes to neutral position
@@ -65,13 +74,20 @@ def follow_object(t, motors_down, motors_left, motors_up, motors_right, joint_st
 			elif (current_state == "wait"):
 				#advertise mug prediction
 				if (current_yaw < -0.18):
+					correct_mug.value = 0
 					clientLogger.advertise("Prediciton: Right Mug")
+					#clientLogger.info("Prediciton: Right Mug")
 				elif (current_yaw > 0.18):
+					correct_mug.value = 2
 					clientLogger.advertise("Prediciton: Left Mug")
+					#clientLogger.info("Prediciton: Left Mug")
 				else:
+					correct_mug.value = 1
 					clientLogger.advertise("Prediciton: Center Mug")
-				
+					#clientLogger.info("Prediciton: Center Mug")
+
 			#set previous state
-			if (current_state != previous_state):
-				previous_state = current_state
+			if (current_state != previous_state.value):
+				#clientLogger.info(previous_state.value)
+				previous_state.value = current_state
 			

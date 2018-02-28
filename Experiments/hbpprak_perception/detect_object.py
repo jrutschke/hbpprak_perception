@@ -1,4 +1,4 @@
-# Imported Python Transfer Function
+# authors: Benjamin Alt, Felix Schneider (main idea) and Jacqueline Rutschke 
 import numpy as np
 import sensor_msgs.msg
 import std_msgs.msg
@@ -25,8 +25,12 @@ def detect_object(t, camera, sensors, state, debug_window_pub, previous_state):
 		if (state.value is not None):
 			#set current 
 			current_state = state.value.data
+			# if we lift the mug after 
+			if ((previous_state.value == "wait") & (current_state == "lift_correct_mug")):
+				#debug window is just to show what the algorithm is using
+				debug_window_pub.send_message(cvBridge.cv2_to_imgmsg(img, encoding="rgb8"))
 			# if we lift the mug we want to detect the green ball
-			if (current_state == "lift_correct_mug"):
+			elif (current_state == "lift_correct_mug"):
 				#debug window is just to show what the algorithm is using
 				debug_window_pub.send_message(cvBridge.cv2_to_imgmsg(img, encoding="rgb8"))
 
@@ -45,6 +49,7 @@ def detect_object(t, camera, sensors, state, debug_window_pub, previous_state):
 						y_start = row_idx * row_height
 						y_end = y_start + row_height
 						#calculate mean values for each colour in each tile
+						# img[x_of_image, y_of_image, colour_channel]
 						mean_red = np.mean(img[y_start:y_end,x_start:x_end,0])
 						mean_green = np.mean(img[y_start:y_end,x_start:x_end,1])
 						mean_blue = np.mean(img[y_start:y_end,x_start:x_end,2])
@@ -96,7 +101,4 @@ def detect_object(t, camera, sensors, state, debug_window_pub, previous_state):
 			else:
 				debug_window_pub.send_message(cvBridge.cv2_to_imgmsg(img, encoding="rgb8"))
 			
-			#set previous state
-			previous_state = current_state
-		
 			

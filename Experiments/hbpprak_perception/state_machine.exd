@@ -38,11 +38,11 @@ sm = StateMachine(outcomes=[FINISHED, ERROR, PREEMPTED])
 with sm:
 
     # Wait for challenge start signal
-    StateMachine.add(
-        "wait_start",
-        smach_ros.MonitorState(tc.thimblerigger_started_topic, Empty, start_callback),
-        transitions={"valid": "wait_start", "invalid": "wait_lift_mug", "preempted": PREEMPTED}
-    )
+    #StateMachine.add(
+    #    "wait_start",
+    #    smach_ros.MonitorState(tc.thimblerigger_started_topic, Empty, start_callback),
+    #    transitions={"valid": "wait_start", "invalid": "wait_lift_mug", "preempted": PREEMPTED}
+    #)
 
     # Wait until the user wants to lift the correct mug to see which one she needs to track
     StateMachine.add(
@@ -135,5 +135,5 @@ with sm:
 
 
 # Uncomment the following lines if you want the challenge to run automatically
-#stepper = Stepper()
-#stepper.run_async()
+stepper = Stepper()
+stepper.run_async()
